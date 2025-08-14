@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QRコード作成</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <style>
+    :root { color-scheme: light dark; }
+    body { min-height: 100vh; }
+    #qr-container { position: relative; cursor: zoom-in; }
+  /* Đã loại bỏ style logo QR */
+  /* Đã loại bỏ style logo fullscreen */
+      max-height: 95vh;
+    }
+    #fullscreen-logo {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 128px;
+      height: 128px;
+      border-radius: 16px;
+      background: white;
+      padding: 8px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body class="bg-white text-slate-900 dark:bg-slate-900 dark:text-slate-100 relative">
+  <button id="langToggleBtn" class="absolute top-4 right-4 p-1 rounded-full">
+    <img id="langFlag" src="vn.png" alt="flag" class="w-6 h-6 object-cover rounded-full">
+  </button>
+
+  <main class="min-h-screen grid place-items-center px-5">
+    <div class="w-full max-w-2xl text-center">
+      <h1 id="title" class="text-4xl font-semibold tracking-tight mb-6">QRコード作成</h1>
+
+      <div class="flex items-stretch gap-2">
+        <input id="qr-input" type="text" autocomplete="off"
+               class="flex-1 rounded-full border border-slate-300 dark:border-slate-700 px-5 py-3 text-lg shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white/80 dark:bg-slate-800/80"
+               placeholder="リンクまたは内容を入力" />
+      </div>
+
+      <div id="qr-container" class="mx-auto mt-8 rounded-2xl border border-dashed border-slate-300 dark:border-slate-700 p-6 w-fit" role="button" aria-label="Open QR fullscreen" title="Click to view fullscreen">
+        <span id="placeholder" class="text-slate-400">ここにQRコードが表示されます</span>
+      </div>
+
+      <div class="flex justify-center gap-3 mt-5">
+        <button id="downloadPNGBtn" class="px-4 py-2 rounded-full bg-emerald-600 hover:bg-emerald-700 text-white disabled:opacity-40" disabled>PNGを保存</button>
+        <button id="fullscreenBtn" class="px-4 py-2 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white disabled:opacity-40" disabled>全画面表示</button>
+        <button id="clearBtn" class="px-4 py-2 rounded-full bg-slate-200 hover:bg-slate-300 dark:bg-slate-700 dark:hover:bg-slate-600">クリア</button>
+      </div>
+    </div>
+  </main>
+
+  <div id="fullscreen-view" style="display: flex; justify-content: space-around;">
+    <img id="fullscreen-img" src="" alt="QR Fullscreen" style="margin: 10%;"
+    >
+  </div>
+
+  <script>
+  // Đã loại bỏ logoSrc
+    const el = {
+      input: document.getElementById('qr-input'),
+      container: document.getElementById('qr-container'),
+      langToggleBtn: document.getElementById('langToggleBtn'),
+      langFlag: document.getElementById('langFlag'),
+      clearBtn: document.getElementById('clearBtn'),
+      downloadPNGBtn: document.getElementById('downloadPNGBtn'),
+      fullscreenBtn: document.getElementById('fullscreenBtn'),
+      fullscreenView: document.getElementById('fullscreen-view'),
+      fullscreenImg: document.getElementById('fullscreen-img'),
+  // Đã loại bỏ fullscreenLogo
+      title: document.getElementById('title'),
+      placeholder: document.getElementById('placeholder')
+    };
+
+    let qrcodeInstance = null;
+    let currentLang = 'jp';
+
+    const translations = {
+      vi: { title: 'Tạo mã QR', placeholder: 'QR sẽ hiển thị ở đây', clear: 'Xóa', download: 'Tải PNG', fullscreen: 'Phóng to', inputPlaceholder: 'Dán link hoặc nhập nội dung', flag: 'jp.webp' },
+      jp: { title: 'QRコード作成', placeholder: 'ここにQRコードが表示されます', clear: 'クリア', download: 'PNGを保存', fullscreen: '全画面表示', inputPlaceholder: 'リンクまたは内容を入力', flag: 'vn.png' }
+    };
+
+    function applyLanguage(lang) {
+      el.title.textContent = translations[lang].title;
+      el.placeholder.textContent = translations[lang].placeholder;
+      el.clearBtn.textContent = translations[lang].clear;
+      el.downloadPNGBtn.textContent = translations[lang].download;
+      el.fullscreenBtn.textContent = translations[lang].fullscreen;
+      el.input.placeholder = translations[lang].inputPlaceholder;
+      el.langFlag.src = translations[lang].flag;
+    }
+
+    function clearQR() {
+      el.container.innerHTML = `<span id="placeholder" class="text-slate-400">${translations[currentLang].placeholder}</span>`;
+      el.downloadPNGBtn.disabled = true;
+      el.fullscreenBtn.disabled = true;
+      qrcodeInstance = null;
+    }
+
+    function createQR(text) {
+      if (!text) text = el.input.value.trim();
+      if (!text) { clearQR(); return; }
+      el.container.innerHTML = '';
+      qrcodeInstance = new QRCode(el.container, {
+        text,
+        width: 256,
+        height: 256,
+        colorDark: '#111827',
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+  // Không thêm logo vào QR code
+      el.downloadPNGBtn.disabled = false;
+      el.fullscreenBtn.disabled = false;
+    }
+
+    function downloadPNG() {
+      if (!qrcodeInstance) return;
+      const canvas = el.container.querySelector('canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        const logo = new Image();
+        logo.src = logoSrc;
+        logo.onload = () => {
+          const size = 64;
+          ctx.fillStyle = 'white';
+          ctx.fillRect((canvas.width - size)/2, (canvas.height - size)/2, size, size);
+          ctx.drawImage(logo, (canvas.width - size)/2, (canvas.height - size)/2, size, size);
+          const link = document.createElement('a');
+          link.download = 'qrcode.png';
+          link.href = canvas.toDataURL('image/png');
+          link.click();
+        }
+      }
+    }
+
+    function enterFullscreen(elm) {
+      if (elm.requestFullscreen) return elm.requestFullscreen();
+      if (elm.webkitRequestFullscreen) return elm.webkitRequestFullscreen();
+      if (elm.msRequestFullscreen) return elm.msRequestFullscreen();
+    }
+    function exitFullscreen() {
+      if (document.exitFullscreen) return document.exitFullscreen();
+      if (document.webkitExitFullscreen) return document.webkitExitFullscreen();
+      if (document.msExitFullscreen) return document.msExitFullscreen();
+    }
+
+    function fullscreenQR() {
+      if (!qrcodeInstance) return;
+      const canvas = el.container.querySelector('canvas');
+      if (canvas) {
+        el.fullscreenImg.src = canvas.toDataURL('image/png');
+  // Không gán logo cho fullscreen
+        el.fullscreenView.style.display = 'flex';
+        enterFullscreen(el.fullscreenView);
+        document.documentElement.style.overflow = 'hidden';
+        el.fullscreenView.focus();
+      }
+    }
+
+    function closeFullscreenQR() {
+      el.fullscreenView.style.display = 'none';
+      document.documentElement.style.overflow = '';
+      exitFullscreen();
+    }
+
+    el.fullscreenView.addEventListener('click', closeFullscreenQR);
+    el.fullscreenView.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') closeFullscreenQR();
+    });
+    el.container.addEventListener('click', () => {
+      if (qrcodeInstance) fullscreenQR();
+    });
+
+    el.langToggleBtn.addEventListener('click', () => {
+      currentLang = currentLang === 'vi' ? 'jp' : 'vi';
+      applyLanguage(currentLang);
+      clearQR();
+      createQR();
+    });
+    el.input.addEventListener('input', () => createQR());
+    el.clearBtn.addEventListener('click', () => { el.input.value = ''; clearQR(); el.input.focus(); });
+    el.downloadPNGBtn.addEventListener('click', downloadPNG);
+    el.fullscreenBtn.addEventListener('click', fullscreenQR);
+
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && el.fullscreenView.style.display !== 'none') {
+        el.fullscreenView.style.display = 'none';
+        document.documentElement.style.overflow = '';
+      }
+    });
+
+    applyLanguage(currentLang);
+    el.input.value = 'https://example.com';
+    createQR();
+    el.input.select();
+  </script>
+</body>
+</html>
