@@ -103,17 +103,29 @@
     }
 
     function createQR(text) {
-      if (!text) text = el.input.value.trim();
-      if (!text) { clearQR(); return; }
-      el.container.innerHTML = '';
-      qrcodeInstance = new QRCode(el.container, {
-        text,
-        width: 256,
-        height: 256,
-        colorDark: '#111827',
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
+          if (!text) text = el.input.value.trim();
+          if (!text) { clearQR(); return; }
+          el.container.innerHTML = '';
+          qrcodeInstance = new QRCode(el.container, {
+            text,
+            width: 256,
+            height: 256,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.H
+          });
+          // Tạo canvas ẩn 512x512 để lấy ảnh chất lượng cao khi fullscreen
+          el._hiddenCanvas = document.createElement('canvas');
+          el._hiddenCanvas.width = 512;
+          el._hiddenCanvas.height = 512;
+          const ctx = el._hiddenCanvas.getContext('2d');
+          // Vẽ lại QR lên canvas lớn
+          setTimeout(() => {
+            const smallCanvas = el.container.querySelector('canvas');
+            if (smallCanvas) {
+              ctx.drawImage(smallCanvas, 0, 0, 512, 512);
+            }
+          }, 100);
   // Không thêm logo vào QR code
       el.downloadPNGBtn.disabled = false;
       el.fullscreenBtn.disabled = false;
@@ -151,16 +163,15 @@
     }
 
     function fullscreenQR() {
-      if (!qrcodeInstance) return;
-      const canvas = el.container.querySelector('canvas');
-      if (canvas) {
-        el.fullscreenImg.src = canvas.toDataURL('image/png');
-  // Không gán logo cho fullscreen
-        el.fullscreenView.style.display = 'flex';
-        enterFullscreen(el.fullscreenView);
-        document.documentElement.style.overflow = 'hidden';
-        el.fullscreenView.focus();
-      }
+        if (!qrcodeInstance) return;
+        // Lấy ảnh chất lượng cao từ canvas ẩn
+        if (el._hiddenCanvas) {
+          el.fullscreenImg.src = el._hiddenCanvas.toDataURL('image/png');
+          el.fullscreenView.style.display = 'flex';
+          enterFullscreen(el.fullscreenView);
+          document.documentElement.style.overflow = 'hidden';
+          el.fullscreenView.focus();
+        }
     }
 
     function closeFullscreenQR() {
