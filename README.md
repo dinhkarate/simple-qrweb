@@ -2,8 +2,6 @@
 
 🔗 Website: [https://qr.kikigaki.io.vn](https://qr.kikigaki.io.vn)
 
-Repo này là **mã nguồn của web qr.kikigaki.io.vn** — một trang tạo QR code **KISS**
-
 ## ✨ What I Learned
 - Nguyên tắc **KISS**: giữ mọi thứ đơn giản, chỉ tập trung tạo QR.
 - Cách setup tên miền với `CNAME`, `A` record và trỏ DNS.
