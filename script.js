@@ -43,10 +43,11 @@ function createQR(text) {
   if (!text) text = el.input.value.trim();
   if (!text) { clearQR(); return; }
   el.container.innerHTML = '';
+  const containerSize = 268; // 280px container - 12px padding (6px each side)
   qrcodeInstance = new QRCode(el.container, {
     text,
-    width: 256,
-    height: 256,
+    width: containerSize,
+    height: containerSize,
     colorDark: '#000000',
     colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.H
@@ -124,6 +125,7 @@ el.langToggleBtn.addEventListener('click', () => {
   createQR();
 });
 el.input.addEventListener('input', () => createQR());
+el.input.addEventListener('click', () => el.input.select());
 el.clearBtn.addEventListener('click', () => { el.input.value = ''; clearQR(); el.input.focus(); });
 el.downloadPNGBtn.addEventListener('click', downloadPNG);
 el.fullscreenBtn.addEventListener('click', fullscreenQR);
